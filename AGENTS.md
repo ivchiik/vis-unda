@@ -28,8 +28,9 @@ Georgian-language quiz game in the "Who Wants to Be a Millionaire" format. Expo 
 
 - Backend (planned: Supabase for questions, leaderboard, accounts). Until then questions come from `src/game/questions.ka.ts`.
 - Visual design, fonts, sounds. Do not invent a design; wait for screenshots.
-- Stays on Expo Go: do not add libraries with custom native code without asking.
+- Uses an Expo development client for iPhone testing. Additional libraries with custom native code still require approval; rebuild the client when native dependencies or app configuration change.
+- Keep `expo.name` as `Vis Unda` so the generated Xcode target has an ASCII name. The iPhone display name is `ვის უნდა 20 001?` in `ios.infoPlist.CFBundleDisplayName`; a Georgian-only name followed by digits produces a numeric Xcode target and breaks signing.
 
 ## Commands
 
-`npm start`, `npm run typecheck`, `npm run lint`, `npm run check` (typecheck + lint + prettier). Husky runs lint-staged on commit.
+`npm start` starts Metro for the development client. `npm run build:ios` creates an internal iPhone development build with EAS. `npm run typecheck`, `npm run lint`, `npm run check` (typecheck + lint + prettier). Husky runs lint-staged on commit.

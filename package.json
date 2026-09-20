@@ -4,9 +4,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "expo start --clear",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "start": "expo start --dev-client --clear",
+    "android": "expo start --dev-client --android",
+    "ios": "expo start --dev-client --ios",
+    "build:ios": "npx --yes eas-cli@24.7.0 build --platform ios --profile development",
     "lint": "expo lint",
     "lint:fix": "expo lint --fix",
     "typecheck": "tsc --noEmit",
@@ -16,11 +17,12 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "expo": "~57.0.23",
-    "expo-constants": "~57.0.18",
+    "expo": "~57.0.24",
+    "expo-constants": "~57.0.19",
+    "expo-dev-client": "~57.0.19",
     "expo-font": "~57.0.4",
     "expo-linking": "~57.0.10",
-    "expo-router": "~57.0.21",
+    "expo-router": "~57.0.22",
     "expo-splash-screen": "~57.0.9",
     "expo-sqlite": "~57.0.3",
     "expo-status-bar": "~57.0.1",
@@ -58,5 +60,6 @@
   },
   "engines": {
     "node": ">=22.13.0"
-  }
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

@@ -1,56 +1,47 @@
-# Welcome to your Expo app 👋
+# Vis Unda
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Georgian-first quiz app built with Expo SDK 57 and Expo Router for iOS and Android.
 
-## Get started
-
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## iPhone development build
 
 ```bash
-npm run reset-project
+npm install
+npm run build:ios
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+The `development` profile in `eas.json` creates an internal build with Expo Dev Client.
+EAS uses the `ivchiik/vis-unda` project and the iOS bundle identifier `com.visunda.app`.
+The first build needs Apple signing credentials and your iPhone registered for ad hoc distribution.
+If the phone is not registered yet, run `npx --yes eas-cli@24.7.0 device:create` and follow its registration link on the phone before building.
 
-### Other setup steps
+Install the finished build using the EAS build link on your iPhone. Enable Developer Mode in
+Settings > Privacy & Security if iOS requests it.
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+## Daily development
 
-## Learn more
+```bash
+npm start
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+Keep the iPhone and Mac on the same Wi-Fi network, then scan the terminal QR code with the
+Camera app to open Vis Unda's development client. If LAN access is unavailable, use
+`npm start -- --tunnel` (Expo may prompt to install its tunnel helper).
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+JavaScript and TypeScript changes reload through Metro. Rebuild after changing native
+dependencies, app icons, or native app configuration.
 
-## Join the community
+## Project
 
-Join our community of developers creating universal apps.
+- Routes: `src/app/`
+- Screens and screen hooks: `src/screens/`
+- Shared UI: `src/components/`
+- Georgian and English strings: `src/i18n/locales/`
+- Game state and placeholder questions: `src/game/`
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Generated `ios/` and `android/` folders stay gitignored; app configuration lives in `app.json`.
+
+```bash
+npm run check
+```
+
+Runs TypeScript, ESLint, and Prettier checks.
