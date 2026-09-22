@@ -5,18 +5,23 @@ import type { Theme } from "@/theme";
 export const _styles = (theme: Theme) =>
   StyleSheet.create({
     button: {
-      minHeight: 48,
-      paddingHorizontal: 20,
-      paddingVertical: 12,
+      alignSelf: "stretch",
+    },
+
+    content: {
+      minHeight: 54,
       alignItems: "center",
-      justifyContent: "center",
-      borderRadius: 8,
-      backgroundColor: theme.color.buttonBackground,
+      paddingVertical: 12,
     },
 
     label: {
-      color: theme.color.buttonText,
+      color: theme.color.white,
       textAlign: "center",
+      fontWeight: "700",
+    },
+
+    primaryLabel: {
+      color: theme.color.brown100,
     },
 
     pressed: {

@@ -1,24 +1,27 @@
 import type { PropsWithChildren } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { DefaultTheme, ThemeProvider } from "expo-router";
+import { DarkTheme, ThemeProvider } from "expo-router";
 
 import "@/i18n/i18n";
+import { useAuthSession } from "@/auth";
 import { theme, useTheme } from "@/theme";
 
 import { _styles } from "./AppProviders.styles";
 
 const NAVIGATION_THEME = {
-  ...DefaultTheme,
+  ...DarkTheme,
   colors: {
-    ...DefaultTheme.colors,
-    background: theme.color.background,
-    card: theme.color.background,
-    text: theme.color.textPrimary,
-    primary: theme.color.textPrimary,
+    ...DarkTheme.colors,
+    background: theme.color.blue800,
+    card: theme.color.blue800,
+    text: theme.color.gray100,
+    primary: theme.color.blue100,
+    border: theme.color.blue300,
   },
 };
 
 export const AppProviders = ({ children }: PropsWithChildren) => {
+  useAuthSession();
   const { styles } = useTheme(_styles);
 
   return (

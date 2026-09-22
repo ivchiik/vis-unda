@@ -1,8 +1,16 @@
 import { create } from "zustand";
 
-import { MONEY_LADDER, TOTAL_LEVELS } from "./constants";
+import {
+  ALL_LIFELINES,
+  ANSWER_REVEAL_DELAY_MS,
+  ANSWER_TIME_MS,
+  MONEY_LADDER,
+  TOTAL_LEVELS,
+} from "./constants";
 import { getGuaranteedAmount } from "./getGuaranteedAmount";
-import type { GameStatus, Lifeline, Question } from "./types";
+import { prepareQuestions } from "./prepareQuestions";
+import { Lifeline } from "./types";
+import type { GameStatus, Question } from "./types";
 
 interface GameState {
   status: GameStatus;
@@ -10,80 +18,156 @@ interface GameState {
   currentIndex: number;
   usedLifelines: Lifeline[];
   hiddenAnswerIndexes: number[];
+  phoneFriendIndex: number | null;
+  audiencePercentages: number[] | null;
+  submittedAnswerIndex: number | null;
+  isTimedOut: boolean;
+  deadlineAt: number;
+  revealedAt: number;
   wonAmount: number;
-
-  startGame: (questions: Question[]) => void;
+  startGame: (questions: Question[]) => boolean;
   answer: (answerIndex: number) => boolean;
+  advance: () => void;
+  expire: () => void;
   useLifeline: (lifeline: Lifeline) => boolean;
   walkAway: () => void;
   reset: () => void;
 }
 
+const QUESTION_STATE = {
+  hiddenAnswerIndexes: [] as number[],
+  phoneFriendIndex: null as number | null,
+  audiencePercentages: null as number[] | null,
+  submittedAnswerIndex: null as number | null,
+  isTimedOut: false,
+  revealedAt: 0,
+};
+
 const INITIAL_STATE = {
+  ...QUESTION_STATE,
   status: "idle" as GameStatus,
   questions: [] as Question[],
   currentIndex: 0,
   usedLifelines: [] as Lifeline[],
-  hiddenAnswerIndexes: [] as number[],
   wonAmount: 0,
+  deadlineAt: 0,
 };
 
 export const useGameStore = create<GameState>((set, get) => ({
   ...INITIAL_STATE,
 
-  startGame: (questions) =>
-    set({ ...INITIAL_STATE, status: "playing", questions: [...questions].sort(byLevel) }),
-
-  answer: (answerIndex) => {
-    const { status, questions, currentIndex } = get();
-    if (status !== "playing") return false;
-
-    const isCorrect = questions[currentIndex]?.correctIndex === answerIndex;
-    if (!isCorrect) {
-      set({ status: "lost", wonAmount: getGuaranteedAmount(currentIndex) });
-      return false;
-    }
-
-    const isLastLevel = currentIndex + 1 >= Math.min(TOTAL_LEVELS, questions.length);
-    if (isLastLevel) {
-      set({ status: "won", wonAmount: MONEY_LADDER[currentIndex] });
-    } else {
-      set({ currentIndex: currentIndex + 1, hiddenAnswerIndexes: [] });
-    }
+  startGame: (bank) => {
+    const questions = prepareQuestions(bank);
+    if (!questions) return false;
+    set({
+      ...INITIAL_STATE,
+      status: "playing",
+      questions,
+      deadlineAt: Date.now() + ANSWER_TIME_MS,
+    });
     return true;
   },
 
-  useLifeline: (lifeline) => {
-    const { status, usedLifelines, questions, currentIndex } = get();
-    if (status !== "playing" || usedLifelines.includes(lifeline)) return false;
+  answer: (answerIndex) => {
+    get().expire();
+    const { status, questions, currentIndex, hiddenAnswerIndexes } = get();
+    if (
+      status !== "playing" ||
+      !Number.isInteger(answerIndex) ||
+      answerIndex < 0 ||
+      answerIndex >= questions[currentIndex].answers.length ||
+      hiddenAnswerIndexes.includes(answerIndex)
+    )
+      return false;
 
+    const isCorrect = questions[currentIndex].correctIndex === answerIndex;
+    set({
+      status: "revealed",
+      submittedAnswerIndex: answerIndex,
+      revealedAt: Date.now(),
+      wonAmount: isCorrect ? MONEY_LADDER[currentIndex] : getGuaranteedAmount(currentIndex),
+    });
+    return isCorrect;
+  },
+
+  advance: () => {
+    const { status, questions, currentIndex, submittedAnswerIndex, revealedAt } = get();
+    if (status !== "revealed" || Date.now() - revealedAt < ANSWER_REVEAL_DELAY_MS) return;
+    if (submittedAnswerIndex !== questions[currentIndex].correctIndex) {
+      set({ status: "lost" });
+    } else if (currentIndex === TOTAL_LEVELS - 1) {
+      set({ status: "won" });
+    } else {
+      set({
+        ...QUESTION_STATE,
+        status: "playing",
+        currentIndex: currentIndex + 1,
+        deadlineAt: Date.now() + ANSWER_TIME_MS,
+      });
+    }
+  },
+
+  expire: () => {
+    const { status, currentIndex, deadlineAt } = get();
+    if (status !== "playing" || Date.now() < deadlineAt) return;
+    set({
+      status: "revealed",
+      isTimedOut: true,
+      submittedAnswerIndex: null,
+      revealedAt: Date.now(),
+      wonAmount: getGuaranteedAmount(currentIndex),
+    });
+  },
+
+  useLifeline: (lifeline) => {
+    get().expire();
+    const { status, usedLifelines, questions, currentIndex, hiddenAnswerIndexes } = get();
+    if (
+      status !== "playing" ||
+      usedLifelines.includes(lifeline) ||
+      !ALL_LIFELINES.includes(lifeline)
+    )
+      return false;
+    const question = questions[currentIndex];
+    const available = question.answers
+      .map((_, index) => index)
+      .filter((index) => !hiddenAnswerIndexes.includes(index));
+    const wrong = available.filter((index) => index !== question.correctIndex);
     const next: Partial<GameState> = { usedLifelines: [...usedLifelines, lifeline] };
-    if (lifeline === "FIFTY_FIFTY") {
-      const question = questions[currentIndex];
-      next.hiddenAnswerIndexes = pickTwoWrongAnswers(question);
+    if (lifeline === Lifeline.FiftyFifty) {
+      const remaining = wrong[Math.floor(Math.random() * wrong.length)];
+      next.hiddenAnswerIndexes = wrong.filter((index) => index !== remaining);
+    } else {
+      const accuracy = 0.9 - currentIndex * 0.025;
+      const suggestion =
+        Math.random() < accuracy
+          ? question.correctIndex
+          : wrong[Math.floor(Math.random() * wrong.length)];
+      if (lifeline === Lifeline.PhoneFriend) next.phoneFriendIndex = suggestion;
+      else {
+        const votes = question.answers.map(() => 0);
+        for (let vote = 0; vote < 100; vote += 1) {
+          const choice =
+            Math.random() < 0.55
+              ? suggestion
+              : available[Math.floor(Math.random() * available.length)];
+          votes[choice] += 1;
+        }
+        next.audiencePercentages = votes;
+      }
     }
     set(next);
     return true;
   },
 
   walkAway: () => {
-    const { status, currentIndex } = get();
-    if (status !== "playing") return;
-    set({
-      status: "walked_away",
-      wonAmount: currentIndex > 0 ? MONEY_LADDER[currentIndex - 1] : 0,
-    });
+    get().expire();
+    const { status, questions, currentIndex, submittedAnswerIndex } = get();
+    const isCorrectReveal =
+      status === "revealed" && submittedAnswerIndex === questions[currentIndex].correctIndex;
+    if (status !== "playing" && !isCorrectReveal) return;
+    set({ status: isCorrectReveal && currentIndex === TOTAL_LEVELS - 1 ? "won" : "walked_away" });
   },
 
   reset: () => set({ ...INITIAL_STATE }),
 }));
-
-const byLevel = (a: Question, b: Question) => a.level - b.level;
-
-const pickTwoWrongAnswers = (question: Question | undefined): number[] => {
-  if (!question) return [];
-  const wrong = question.answers
-    .map((_, index) => index)
-    .filter((i) => i !== question.correctIndex);
-  return wrong.sort(() => Math.random() - 0.5).slice(0, 2);
-};

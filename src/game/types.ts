@@ -4,7 +4,7 @@ export enum Lifeline {
   AskAudience = "ASK_AUDIENCE",
 }
 
-export type GameStatus = "idle" | "playing" | "won" | "lost" | "walked_away";
+export type GameStatus = "idle" | "playing" | "revealed" | "won" | "lost" | "walked_away";
 
 export interface Question {
   id: string;
@@ -13,4 +13,6 @@ export interface Question {
   answers: string[];
   correctIndex: number;
   category?: string;
+  explanation: string;
+  sourceUrl: string;
 }

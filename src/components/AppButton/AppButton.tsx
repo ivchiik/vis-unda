@@ -3,6 +3,7 @@ import { Pressable } from "react-native";
 import { useTheme } from "@/theme";
 
 import { AppText } from "../AppText/AppText";
+import { AppPanel } from "../AppPanel/AppPanel";
 import { _styles } from "./AppButton.styles";
 import type { AppButtonProps } from "./AppButton.types";
 
@@ -11,6 +12,7 @@ export const AppButton = ({
   disabled,
   style,
   accessibilityState,
+  variant = "primary",
   ...rest
 }: AppButtonProps) => {
   const { styles } = useTheme(_styles);
@@ -28,7 +30,15 @@ export const AppButton = ({
         disabled && styles.disabled,
       ]}
     >
-      <AppText style={styles.label}>{title}</AppText>
+      <AppPanel
+        tone={variant === "primary" ? "gold" : "blue"}
+        hasRails={variant === "primary"}
+        contentStyle={styles.content}
+      >
+        <AppText style={[styles.label, variant === "primary" && styles.primaryLabel]}>
+          {title}
+        </AppText>
+      </AppPanel>
     </Pressable>
   );
 };

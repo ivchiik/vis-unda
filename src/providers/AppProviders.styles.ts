@@ -6,6 +6,6 @@ export const _styles = (theme: Theme) =>
   StyleSheet.create({
     root: {
       flex: 1,
-      backgroundColor: theme.color.background,
+      backgroundColor: theme.color.blue800,
     },
   });

@@ -17,7 +17,7 @@ export const _styles = (theme: Theme) =>
     },
 
     description: {
-      color: theme.color.textSecondary,
+      color: theme.color.gray200,
       textAlign: "center",
     },
   });

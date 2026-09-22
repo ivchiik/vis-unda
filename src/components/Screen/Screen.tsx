@@ -1,4 +1,4 @@
-import { View } from "react-native";
+import { Image, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useTheme } from "@/theme";
@@ -14,8 +14,16 @@ export const Screen = ({
   const { styles } = useTheme(_styles);
 
   return (
-    <SafeAreaView edges={edges} style={styles.root}>
-      <View style={[styles.content, style]}>{children}</View>
-    </SafeAreaView>
+    <View style={styles.root}>
+      <Image
+        source={require("@/assets/images/show/stage-backdrop.png")}
+        style={styles.backdrop}
+        resizeMode="cover"
+        accessible={false}
+      />
+      <SafeAreaView edges={edges} style={styles.safeArea}>
+        <View style={[styles.content, style]}>{children}</View>
+      </SafeAreaView>
+    </View>
   );
 };

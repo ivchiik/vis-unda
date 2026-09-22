@@ -9,11 +9,32 @@ module.exports = defineConfig([
   {
     rules: {
       "no-console": ["error", { allow: ["warn", "error"] }],
+      "import/no-named-as-default-member": "off",
+    },
+  },
+  {
+    files: ["**/*.ts", "**/*.tsx"],
+    rules: {
       "@typescript-eslint/no-unused-vars": [
         "error",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
       ],
-      "import/no-named-as-default-member": "off",
+    },
+  },
+  {
+    files: ["app.config.js"],
+    languageOptions: {
+      sourceType: "commonjs",
+      globals: {
+        __dirname: "readonly",
+      },
+    },
+  },
+  {
+    files: ["src/**/*.styles.ts"],
+    rules: {
+      "object-curly-newline": ["error", { ObjectExpression: "always" }],
+      "object-property-newline": ["error", { allowAllPropertiesOnSameLine: false }],
     },
   },
   {

@@ -6,8 +6,11 @@ import { AppProviders } from "@/providers";
 
 export const RootLayout = () => (
   <AppProviders>
-    <StatusBar style="dark" />
-    <Stack screenOptions={screenOptions} />
+    <StatusBar style="light" />
+    <Stack screenOptions={screenOptions}>
+      <Stack.Screen name="account" options={{ gestureEnabled: false }} />
+      <Stack.Screen name="game" options={{ gestureEnabled: false }} />
+    </Stack>
   </AppProviders>
 );
 
